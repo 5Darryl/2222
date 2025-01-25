@@ -1,0 +1,150 @@
+import React, { useState, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Download, Image } from 'lucide-react';
+
+const MemeGenerator = () => {
+  const [selectedTemplate, setSelectedTemplate] = useState(0);
+  const [topText, setTopText] = useState('');
+  const [bottomText, setBottomText] = useState('');
+  const [creator, setCreator] = useState('');
+  const canvasRef = useRef(null);
+
+  // Meme templates - add more as needed
+  const templates = [
+    {
+      name: 'Drake',
+      placeholder: '/api/placeholder/400/400'
+    },
+    {
+      name: 'Distracted Boyfriend',
+      placeholder: '/api/placeholder/400/300'
+    },
+    {
+      name: 'Two Buttons',
+      placeholder: '/api/placeholder/400/400'
+    }
+  ];
+
+  const downloadMeme = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    
+    // Create meme on canvas
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw template image
+    const img = new Image();
+    img.src = templates[selectedTemplate].placeholder;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    // Add text
+    ctx.font = '30px Impact';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.textAlign = 'center';
+    
+    // Top text
+    ctx.fillText(topText.toUpperCase(), canvas.width/2, 40);
+    ctx.strokeText(topText.toUpperCase(), canvas.width/2, 40);
+    
+    // Bottom text
+    ctx.fillText(bottomText.toUpperCase(), canvas.width/2, canvas.height - 20);
+    ctx.strokeText(bottomText.toUpperCase(), canvas.width/2, canvas.height - 20);
+    
+    // Creator tag
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'black';
+    ctx.fillText(`Created by: ${creator}`, canvas.width - 80, canvas.height - 5);
+    
+    // Download
+    const link = document.createElement('a');
+    link.download = 'meme.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  return (
+    <Card className="w-full max-w-2xl mx-auto p-6">
+      <CardContent>
+        <div className="space-y-6">
+          {/* Template Selection */}
+          <div className="grid grid-cols-3 gap-4">
+            {templates.map((template, index) => (
+              <div
+                key={index}
+                className={`cursor-pointer border-2 rounded p-2 ${
+                  selectedTemplate === index ? 'border-blue-500' : 'border-gray-200'
+                }`}
+                onClick={() => setSelectedTemplate(index)}
+              >
+                <img
+                  src={template.placeholder}
+                  alt={template.name}
+                  className="w-full h-32 object-cover"
+                />
+                <p className="text-center mt-2">{template.name}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Text Inputs */}
+          <div className="space-y-4">
+            <Input
+              placeholder="Top Text"
+              value={topText}
+              onChange={(e) => setTopText(e.target.value)}
+            />
+            <Input
+              placeholder="Bottom Text"
+              value={bottomText}
+              onChange={(e) => setBottomText(e.target.value)}
+            />
+            <Input
+              placeholder="Your Name/Handle"
+              value={creator}
+              onChange={(e) => setCreator(e.target.value)}
+            />
+          </div>
+
+          {/* Preview */}
+          <div className="relative w-full h-96 bg-gray-100 rounded">
+            <img
+              src={templates[selectedTemplate].placeholder}
+              alt="Selected template"
+              className="w-full h-full object-contain"
+            />
+            <p className="absolute top-4 left-0 w-full text-center text-2xl font-bold text-white stroke-black">
+              {topText.toUpperCase()}
+            </p>
+            <p className="absolute bottom-4 left-0 w-full text-center text-2xl font-bold text-white stroke-black">
+              {bottomText.toUpperCase()}
+            </p>
+          </div>
+
+          {/* Download Button */}
+          <Button 
+            className="w-full"
+            onClick={downloadMeme}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Meme
+          </Button>
+
+          {/* Hidden canvas for image generation */}
+          <canvas
+            ref={canvasRef}
+            width="400"
+            height="400"
+            className="hidden"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MemeGenerator;
